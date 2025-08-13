@@ -14,7 +14,7 @@
 </style>
 
 <h1>SpeakCheck</h1>
-<p><small>Type anything (email, phone, etc). Nothing leaves your browser.</small></p>
+<p><small>Type anything (email, phone, code). Nothing leaves your browser.</small></p>
 
 <div class="card">
   <label for="inp"><strong>Input</strong></label>
@@ -119,21 +119,31 @@ async function copyOut(id){
 <div id="visit-count" style="text-align:right;color:#666;font-size:0.8em;margin-top:20px"></div>
 <script>
   (function () {
-    // unique id
-    const id = "speakcheck.manas-menon/homepage";
-    const url = `https://hits.sh/${encodeURIComponent(id)}.json`;
+    // Use the real page as the counter key: e.g. username.github.io/speakcheck/
+    var id = location.host + location.pathname; // no protocol
+    // Ensure it ends with a slash for repo roots (GitHub Pages often needs this)
+    if (!id.endsWith('/')) id += '/';
 
-    // Increment + get total, then render
-    fetch(url)
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(data => {
-        const n = Number(data.hits || 0);
-        document.getElementById("visit-count").textContent =
-          `${n.toLocaleString()} visits`;
+    var imgUrl  = "https://hits.sh/" + encodeURIComponent(id) + ".svg?style=flat-square"; // increments
+    var jsonUrl = "https://hits.sh/" + encodeURIComponent(id) + ".json";                  // returns count
+
+    // 1) Trigger increment via hidden image
+    var img = new Image(1,1);
+    img.alt = "";
+    img.style = "position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;";
+    img.src = imgUrl; // this increments the counter
+    document.body.appendChild(img);
+
+    // 2) Fetch current total and display
+    fetch(jsonUrl)
+      .then(function(r){ return r.ok ? r.json() : Promise.reject(); })
+      .then(function(data){
+        var el = document.getElementById("visit-count");
+        if (el && data && typeof data.hits !== "undefined") {
+          el.textContent = Number(data.hits).toLocaleString() + " visits";
+        }
       })
-      .catch(() => {
-        // stay silent if it fails
-      });
+      .catch(function(){ /* stay quiet if it fails */ });
   })();
 </script>
 
