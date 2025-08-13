@@ -115,19 +115,27 @@ async function copyOut(id){
 }
 </script>
 
-<!-- visit counter -->
+<!-- understated visit counter -->
 <div id="visit-count" style="text-align:right;color:#666;font-size:0.8em;margin-top:20px"></div>
 <script>
   (function () {
-    const namespace = "speakcheck-manas-menon";
-    const key = "homepage";
-    const el = document.getElementById("visit-count");
-    if (!el) return;
-    fetch(`https://api.countapi.xyz/hit/${encodeURIComponent(namespace)}/${encodeURIComponent(key)}`)
+    // unique id
+    const id = "speakcheck.manas-menon/homepage";
+    const url = `https://hits.sh/${encodeURIComponent(id)}.json`;
+
+    // Increment + get total, then render
+    fetch(url)
       .then(r => r.ok ? r.json() : Promise.reject())
-      .then(({ value }) => { el.textContent = `${Number(value).toLocaleString()} visits`; })
-      .catch(() => {});
+      .then(data => {
+        const n = Number(data.hits || 0);
+        document.getElementById("visit-count").textContent =
+          `${n.toLocaleString()} visits`;
+      })
+      .catch(() => {
+        // stay silent if it fails
+      });
   })();
 </script>
+
   
 </html>
