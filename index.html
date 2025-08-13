@@ -114,4 +114,20 @@ async function copyOut(id){
   try { await navigator.clipboard.writeText(t); } catch {}
 }
 </script>
+
+<!-- visit counter -->
+<div id="visit-count" style="text-align:right;color:#666;font-size:0.8em;margin-top:20px"></div>
+<script>
+  (function () {
+    const namespace = "speakcheck-manas-menon";
+    const key = "homepage";
+    const el = document.getElementById("visit-count");
+    if (!el) return;
+    fetch(`https://api.countapi.xyz/hit/${encodeURIComponent(namespace)}/${encodeURIComponent(key)}`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(({ value }) => { el.textContent = `${Number(value).toLocaleString()} visits`; })
+      .catch(() => {});
+  })();
+</script>
+  
 </html>
