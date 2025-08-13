@@ -14,7 +14,7 @@
 </style>
 
 <h1>SpeakCheck</h1>
-<p><small>Type anything (email, phone, code). Nothing leaves your browser.</small></p>
+<p><small>Type anything (email, phone, etc). Nothing leaves your browser.</small></p>
 
 <div class="card">
   <label for="inp"><strong>Input</strong></label>
@@ -119,31 +119,36 @@ async function copyOut(id){
 <div id="visit-count" style="text-align:right;color:#666;font-size:0.8em;margin-top:20px"></div>
 <script>
   (function () {
-    // Use the real page as the counter key: e.g. username.github.io/speakcheck/
-    var id = location.host + location.pathname; // no protocol
-    // Ensure it ends with a slash for repo roots (GitHub Pages often needs this)
-    if (!id.endsWith('/')) id += '/';
+    // Build an ID that matches your live page, e.g. username.github.io/speakcheck/
+    var id = location.hostname + location.pathname;
+    if (!id.endsWith('/')) id += '/';               // normalize to trailing slash
 
-    var imgUrl  = "https://hits.sh/" + encodeURIComponent(id) + ".svg?style=flat-square"; // increments
+    var incUrl  = "https://hits.sh/" + encodeURIComponent(id) + ".svg?style=flat-square"; // increments
     var jsonUrl = "https://hits.sh/" + encodeURIComponent(id) + ".json";                  // returns count
 
-    // 1) Trigger increment via hidden image
+    // Increment via hidden image
     var img = new Image(1,1);
     img.alt = "";
     img.style = "position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;";
-    img.src = imgUrl; // this increments the counter
+    img.src = incUrl;
     document.body.appendChild(img);
 
-    // 2) Fetch current total and display
-    fetch(jsonUrl)
-      .then(function(r){ return r.ok ? r.json() : Promise.reject(); })
-      .then(function(data){
-        var el = document.getElementById("visit-count");
-        if (el && data && typeof data.hits !== "undefined") {
-          el.textContent = Number(data.hits).toLocaleString() + " visits";
-        }
-      })
-      .catch(function(){ /* stay quiet if it fails */ });
+    // After increment request fires, fetch the updated count and display it
+    function render() {
+      fetch(jsonUrl)
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (data) {
+          var el = document.getElementById("visit-count");
+          if (el && data && typeof data.hits !== "undefined") {
+            el.textContent = Number(data.hits).toLocaleString() + " visits";
+          }
+        })
+        .catch(function(){ /* silent fail */ });
+    }
+
+    // Give the increment a moment before reading JSON (or wait for image load)
+    img.addEventListener('load', render);
+    setTimeout(render, 400); // fallback if load event is blocked
   })();
 </script>
 
