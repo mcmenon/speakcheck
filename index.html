@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="color-scheme" content="light dark" />
+<title>SpeakCheck · verbal verification</title>
+<style>
+  :root{--b:#e5e7eb;--r:12px} body{font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:24px;max-width:880px}
+  h1{font-size:20px;margin:0 0 12px} .card{padding:16px;border:1px solid var(--b);border-radius:var(--r);margin:12px 0}
+  .row{display:grid;gap:8px;grid-template-columns:1fr auto} input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--b)}
+  button{padding:8px 12px;border-radius:10px;border:1px solid var(--b);background:none;cursor:pointer}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;word-wrap:break-word}
+  small{color:#555}
+</style>
+
+<h1>SpeakCheck</h1>
+<p><small>Type anything (email, phone, code). Nothing leaves your browser.</small></p>
+
+<div class="card">
+  <label for="inp"><strong>Input</strong></label>
+  <input id="inp" placeholder="e.g. m.menon@example.com" autocomplete="off" />
+</div>
+
+<div class="card">
+  <div class="row">
+    <div><strong>Chunk + check</strong><div id="chunk" class="mono"></div></div>
+    <button onclick="copyOut('chunk')">Copy</button>
+  </div>
+  <small>Read aloud in blocks (each block has a check character)</small>
+</div>
+
+<div class="card">
+  <div class="row">
+    <div><strong>Two-word fingerprint</strong><div id="fp" class="mono"></div></div>
+    <button onclick="copyOut('fp')">Copy</button>
+  </div>
+  <small>Say these two words at the end for quick confirmation</small>
+</div>
+
+<div class="card">
+  <div class="row">
+    <div><strong>Spell-out helper</strong><div id="spell" class="mono"></div></div>
+    <button onclick="copyOut('spell')">Copy</button>
+  </div>
+  <small>Per-character phonetics (letters, digits, symbols)</small>
+</div>
+
+<script>
+const WORDS = [
+  // Tiny demo list; replace with ~2048 distinct words later
+  "acorn","amber","apex","arrow","atlas","avocado","basil","beacon","berry","bison","cactus","cedar","chess","cobalt",
+  "comet","coral","crown","crystal","delta","ember","falcon","fjord","flame","glacier","harbor","ivory","jade","juniper",
+  "koala","lava","lemon","lilac","linen","maple","meadow","nectar","olive","onyx","opal","orbit","pearl","pepper","poppy",
+  "quartz","raven","reef","river","rose","saffron","sage","salmon","saturn","scarlet","solar","spruce","tango","teal","tiger",
+  "topaz","umber","velvet","violet","walnut","willow","xenon","yarrow","zebra","zephyr"
+];
+
+const nato = {a:"Alpha",b:"Bravo",c:"Charlie",d:"Delta",e:"Echo",f:"Foxtrot",g:"Golf",h:"Hotel",i:"India",j:"Juliett",k:"Kilo",l:"Lima",m:"Mike",n:"November",o:"Oscar",p:"Papa",q:"Quebec",r:"Romeo",s:"Sierra",t:"Tango",u:"Uniform",v:"Victor",w:"Whiskey",x:"X-ray",y:"Yankee",z:"Zulu"};
+const digitWords = {0:"zero",1:"one",2:"two",3:"three",4:"four",5:"five",6:"six",7:"seven",8:"eight",9:"nine"};
+const symbolWords = {"@":"at","-":"dash","_":"underscore",".":"dot","+":"plus","#":"hash","/":"slash"};
+
+const $ = id => document.getElementById(id);
+$('inp').addEventListener('input', e => update(e.target.value));
+
+function normalize(s){ return s.normalize(); }
+
+function mod36Checksum(chunk){
+  // simple weighted sum over char codes; demo only
+  let sum = 0;
+  for (let i=0;i<chunk.length;i++) sum += (i+1) * chunk.charCodeAt(i);
+  return (sum % 36).toString(36).toUpperCase();
+}
+
+function chunkWithCheck(s, size=4){
+  if (!s) return "";
+  const out = [];
+  for (let i=0;i<s.length;i+=size){
+    const c = s.slice(i,i+size);
+    out.push(`${c.toUpperCase()}-${mod36Checksum(c)}`);
+  }
+  return out.join(' ');
+}
+
+function spellOut(s){
+  if (!s) return "";
+  return [...s].map(ch=>{
+    if (/[a-z]/i.test(ch)) return `${ch.toUpperCase()} (${nato[ch.toLowerCase()]})`;
+    if (/\d/.test(ch))     return `${ch} (${digitWords[ch]})`;
+    return `${ch} (${symbolWords[ch]||'symbol'})`;
+  }).join(' · ');
+}
+
+async function twoWordFingerprint(s){
+  if (!s) return "";
+  const enc = new TextEncoder().encode(s);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  const bytes = new Uint8Array(buf);
+  // take two 22-bit values from the hash
+  const n1 = ((bytes[0]<<14)|(bytes[1]<<6)|(bytes[2]>>2)) % WORDS.length;
+  const n2 = (((bytes[2]&0x03)<<20)|(bytes[3]<<12)|(bytes[4]<<4)|(bytes[5]>>4)) % WORDS.length;
+  return `${WORDS[n1].toUpperCase()} ${WORDS[n2].toUpperCase()}`;
+}
+
+async function update(raw){
+  const s = normalize(raw);
+  $('chunk').textContent = chunkWithCheck(s, 4);
+  $('spell').textContent = spellOut(s);
+  $('fp').textContent = await twoWordFingerprint(s);
+}
+
+async function copyOut(id){
+  const t = $(id).textContent.trim();
+  if (!t) return;
+  try { await navigator.clipboard.writeText(t); } catch {}
+}
+</script>
+</html>
