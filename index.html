@@ -14,7 +14,7 @@
 </style>
 
 <h1>SpeakCheck</h1>
-<p><small>Type anything (email, phone, code). Nothing leaves your browser.</small></p>
+<p><small>Type anything (email, phone, etc). Nothing leaves your browser.</small></p>
 
 <div class="card">
   <label for="inp"><strong>Input</strong></label>
@@ -115,39 +115,8 @@ async function copyOut(id){
 }
 </script>
 
-<!-- understated visit counter -->
-<div id="visit-count" style="text-align:right;color:#666;font-size:0.8em;margin-top:20px"></div>
-<script>
-  window.addEventListener('DOMContentLoaded', function () {
-    
-    var id = "mcmenon.github.io/speakcheck/";  
-
-    var incUrl  = "https://hits.sh/" + encodeURIComponent(id) + ".svg?style=flat-square&ref=" + encodeURIComponent("https://" + id);
-    var jsonUrl = "https://hits.sh/" + encodeURIComponent(id) + ".json?ref=" + encodeURIComponent("https://" + id);
-
-    // Trigger increment via hidden image
-    var img = new Image(1,1);
-    img.src = incUrl;  // increments
-    img.alt = "";
-    img.style = "position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;";
-    document.body.appendChild(img);
-
-    // Fetch updated count and render
-    function render() {
-      fetch(jsonUrl)
-        .then(r => r.ok ? r.json() : Promise.reject())
-        .then(data => {
-          var el = document.getElementById("visit-count");
-          if (el && data && typeof data.hits !== "undefined") {
-            el.textContent = Number(data.hits).toLocaleString() + " visits";
-          }
-        })
-        .catch(() => {});
-    }
-    img.addEventListener('load', render);
-    setTimeout(render, 500); // fallback
-  });
-</script>
+ <a href='http://www.freevisitorcounters.com'>http://freevisitorcounters.com</a> <script type='text/javascript' src='https://www.freevisitorcounters.com/auth.php?id=80f40541e9b00704476efa5ee55b92b7b7e76c85'></script>
+<script type="text/javascript" src="https://www.freevisitorcounters.com/en/home/counter/1376497/t/3"></script>
 
 
   
